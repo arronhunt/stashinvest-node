@@ -5,12 +5,8 @@ const HOST = 'api.stashinvest.com';
 const PATH = '/api/v1';
 
 /**
- * @typedef {Object} Credentials - User credentials required for most API calls
- * @property {string} token - User's token
- * @property {string} user_id - User's ID
- * @property {string} account_id - User's Account ID
+ * @typedef {Class} Stash
  */
-
 class Stash {
     /**
      * Authenticate user
@@ -34,7 +30,7 @@ class Stash {
      * @param {Credentials} credentials - User's account credentials
      */
     static cards(credentials) {
-        return request.get(`cards`, credentials.token);
+        return request.get(`cards`, credentials.access_token);
     }
 
     /**
@@ -42,7 +38,7 @@ class Stash {
      * @param {Credentials} credentials - User's account credentials
      */
     static cardDetails(credentials, card_id) {
-        return request.get(`cards/${card_id}`, credentials.token);
+        return request.get(`cards/${card_id}`, credentials.access_token);
     }
 
     /**
@@ -50,7 +46,7 @@ class Stash {
      * @param {Credentials} credentials - User's account credentials
      */
     static userDetails(credentials) {
-        return request.get(`users/${credentials.user_id}`, credentials.token);
+        return request.get(`users/${credentials.user_id}`, credentials.access_token);
     }
 
     /**
@@ -58,7 +54,7 @@ class Stash {
      * @param {Credentials} credentials - User's account credentials
      */
     static investorApplication(credentials) {
-        return request.get(`users/${credentials.user_id}/investor_application`, credentials.token);
+        return request.get(`users/${credentials.user_id}/investor_application`, credentials.access_token);
     }
 
     /**
@@ -66,7 +62,7 @@ class Stash {
      * @param {Credentials} credentials - User's account credentials
      */
     static bankAccounts(credentials) {
-        return request.get(`users/${credentials.user_id}/bank_accounts`, credentials.token);
+        return request.get(`users/${credentials.user_id}/bank_accounts`, credentials.access_token);
     }
 
     /**
@@ -74,7 +70,7 @@ class Stash {
      * @param {Credentials} credentials - User's account credentials
      */
     static autoStash(credentials) {
-        return request.get(`users/${credentials.user_id}/auto_stash`, credentials.token);
+        return request.get(`users/${credentials.user_id}/auto_stash`, credentials.access_token);
     }
 
     /**
@@ -82,7 +78,7 @@ class Stash {
      * @param {Credentials} credentials - User's account credentials
      */
     static taxDocuments(credentials) {
-        return request.get(`users/${credentials.user_id}/accounts/${credentials.account_id}/clearing/tax_documents`, credentials.token);
+        return request.get(`users/${credentials.user_id}/accounts/${credentials.uuid}/clearing/tax_documents`, credentials.access_token);
     }
 
     /**
@@ -90,7 +86,7 @@ class Stash {
      * @param {Credentials} credentials - User's account credentials
      */
     static tradeConfirms(credentials) {
-        return request.get(`users/${credentials.user_id}/accounts/${credentials.account_id}/clearing/trade_confirms`, credentials.token);
+        return request.get(`users/${credentials.user_id}/accounts/${credentials.uuid}/clearing/trade_confirms`, credentials.access_token);
     }
 
     /**
@@ -101,7 +97,7 @@ class Stash {
      * @param {string} filters.after - Unix datetime
      */
     static accountHistory(credentials, filters = {}) {
-        return request.get(`users/${credentials.user_id}/accounts/${credentials.account_id}/account_history`, credentials.token, filters);
+        return request.get(`users/${credentials.user_id}/accounts/${credentials.uuid}/account_history`, credentials.access_token, filters);
     }
 
     /**
@@ -109,7 +105,7 @@ class Stash {
      * @param {Credentials} credentials - User's account credentials
      */
     static portfolio(credentials) {
-        return request.get(`users/${credentials.user_id}/accounts/${credentials.account_id}/portfolio`, credentials.token);
+        return request.get(`users/${credentials.user_id}/accounts/${credentials.uuid}/portfolio`, credentials.access_token);
     }
 
     /**
@@ -120,8 +116,8 @@ class Stash {
      * @param {number} params.card_id - The ID of the card you wish to purchase with.
      */
     static buy(credentials, params = {}) {
-        return request.post(`users/${credentials.user_id}/accounts/${credentials.account_id}/transactions/buy`, 
-            credentials.token, 
+        return request.post(`users/${credentials.user_id}/accounts/${credentials.uuid}/transactions/buy`, 
+            credentials.access_token, 
             {
                 transaction: {
                     value: params.value,
@@ -138,8 +134,8 @@ class Stash {
      * @param {number} amount_2 - Dollar amount 2
      */
     static approveBankAccount(credentials, amount_1, amount_2) {
-        return request.post(`users/${credentials.user_id}/accounts/${credentials.account_id}/bank_accounts/approve`, 
-            credentials.token,
+        return request.post(`users/${credentials.user_id}/accounts/${credentials.uuid}/bank_accounts/approve`, 
+            credentials.access_token,
             {
                 amount_1, amount_2
             }
@@ -148,8 +144,15 @@ class Stash {
 
 }
 
+/**
+ * @typedef {Object} Credentials - User credentials required for most API calls
+ * @property {string} access_token - User's Access Token
+ * @property {string} user_id - User's ID
+ * @property {string} uuid - User's UUID
+ */
+
 class request {
-    static makeRequest(method, path, token, body = {}, request_headers = {}) {
+    static makeRequest(method, path, access_token, body = {}, request_headers = {}) {
         return new Promise((resolve, reject) => {
             const postBody = JSON.stringify(body);            
             const options = {
@@ -162,8 +165,8 @@ class request {
                 }
             }
 
-            if (token) {
-                options.headers['Authorization'] = token;
+            if (access_token) {
+                options.headers['Authorization'] = access_token;
             }
               
             let req = https.request(options, res => {
@@ -189,12 +192,12 @@ class request {
         });
     }
 
-    static get(path, token = null, params = {}) {
+    static get(path, access_token = null, params = {}) {
         const structuredPath = path.concat(keysToQueryString(params));
-        return this.makeRequest('GET', structuredPath, token);
+        return this.makeRequest('GET', structuredPath, access_token);
     }
-    static post(path, token, body) {
-        return this.makeRequest('POST', path, token, body);
+    static post(path, access_token, body) {
+        return this.makeRequest('POST', path, access_token, body);
     }
 }
 const keysToQueryString = (keys) => (
