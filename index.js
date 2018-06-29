@@ -103,9 +103,10 @@ class Stash {
     /**
      * Get an account portfolio
      * @param {Credentials} credentials - User's account credentials
+     * @param {string} account_id - The ID of the account you are trying to get the porfolio for (can be found under accounts from userDetails)
      */
-    static portfolio(credentials) {
-        return request.get(`users/${credentials.user_id}/accounts/${credentials.uuid}/portfolio`, credentials.access_token);
+    static portfolio(credentials, account_id) {
+        return request.get(`users/${credentials.user_id}/accounts/${account_id}/portfolio`, credentials.access_token);
     }
 
     /**
