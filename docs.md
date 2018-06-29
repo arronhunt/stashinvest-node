@@ -158,6 +158,7 @@ Get an account portfolio
 | Param | Type | Description |
 | --- | --- | --- |
 | credentials | [<code>Credentials</code>](#Credentials) | User's account credentials |
+| account_id | <code>string</code> | The ID of the account you are trying to get the porfolio for (can be found under accounts from userDetails) |
 
 <a name="Stash.buy"></a>
 
